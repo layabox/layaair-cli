@@ -43,7 +43,6 @@ const os = require('os');
 const cp = require('child_process');
 const https = require('https');
 const http = require('http');
-const crypto = require('crypto');
 
 const DOWNLOAD_ROOT = 'https://ldc-1251285021.file.myqcloud.com/layaair3';
 const LATEST_VERSION_URL = DOWNLOAD_ROOT + '/latest.txt';
@@ -184,10 +183,6 @@ function httpDownload(url, dest) {
     });
 }
 
-function sha256File(file) {
-    return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
-}
-
 function extractZip(zipFile, destDir) {
     if (process.platform === 'win32') {
         const cmd = 'Expand-Archive -LiteralPath ' + JSON.stringify(zipFile) +
@@ -218,7 +213,6 @@ async function cmdInstall(versionArg) {
     const downloadBase = downloadBaseForVersion(version);
     const zipName = 'layaair-cli-' + version + '-' + osName + '-' + arch + '.zip';
     const zipUrl  = downloadBase + '/' + zipName;
-    const shaUrl  = zipUrl + '.sha256';
     const tmpZip  = path.join(os.tmpdir(), 'layaair-cli-install-' + process.pid + '.zip');
     const tmpDir  = path.join(INSTALL_DIR, '.tmp-extract-' + process.pid);
 
@@ -229,20 +223,6 @@ async function cmdInstall(versionArg) {
     } catch (e) {
         console.error('[layaair] Download failed: ' + e.message);
         process.exit(1);
-    }
-
-    try {
-        const sha = (await httpGetText(shaUrl)).trim().split(/\s+/)[0];
-        if (sha) {
-            const actual = sha256File(tmpZip);
-            if (sha.toLowerCase() !== actual.toLowerCase()) {
-                fs.unlinkSync(tmpZip);
-                console.error('[layaair] SHA256 mismatch — download may be corrupted.');
-                process.exit(1);
-            }
-        }
-    } catch (e) {
-        console.warn('[layaair] Could not verify checksum (non-fatal): ' + e.message);
     }
 
     if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true, force: true });
