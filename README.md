@@ -224,7 +224,21 @@ Run it from the command line:
 layaair run -p . --script=BuildTools.exportData --script-args="./dist/data.json"
 ```
 
+Use `--script-file` to compile an extra TypeScript file for the run without adding it to the asset database:
+
+```bash
+layaair run -p . --script=AX.test --script-file=/tmp/a.ts
+```
+
 `--script-args` is parsed as a quote-aware argument string and passed to the target method as positional arguments.
+
+Options:
+
+| Option | Description |
+| --- | --- |
+| `--script=<Class.method>` | Static method to run. |
+| `--script-file=<file.ts>` | Extra TypeScript file to compile for `--script` only. Not imported into the asset database. |
+| `--script-args="..."` | Quote-aware positional arguments for `--script`. |
 
 ## Global Options
 
