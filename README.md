@@ -74,17 +74,17 @@ layaair install
 # Print the active runtime version
 layaair --version
 
-# Create a project with the default template
-layaair create --create-name=MyGame
+# Create a project (name as positional arg)
+layaair create MyGame
 
 # Start the built-in preview server for the current project
-layaair --project=.
+layaair run -p .
 
 # List build platforms supported by the current project
-layaair build --project=. --list-platforms
+layaair build --list-platforms -p .
 
 # Build for Web
-layaair build --project=. --build-platform=web
+layaair build web -p .
 ```
 
 ## Version Management
@@ -109,10 +109,10 @@ By default, `layaair` uses the newest installed version.
 Select a version for one command:
 
 ```bash
-layaair --version=3.4.0 build --project=. --build-platform=web
+layaair --version=3.4.0 build web -p .
 ```
 
-When a command includes `--project`, `layaair` tries to read the `.laya` file in that project directory and match its `version` field to an installed CLI runtime. If no matching version is found, it falls back to the newest installed version and prints a warning.
+When a command includes `--project` / `-p`, `layaair` tries to read the `.laya` file in that project directory and match its `version` field to an installed CLI runtime. If no matching version is found, it falls back to the newest installed version and prints a warning.
 
 ## Usage
 
@@ -124,68 +124,81 @@ List available templates before creating a project:
 layaair create --list-templates
 ```
 
-Create a project with the default template:
+Create a project (name as positional argument):
 
 ```bash
-layaair create --create-name=MyGame
+layaair create MyGame
 ```
 
 Create a project with a specific template:
 
 ```bash
-layaair create \
-  --create-name=MyGame \
-  --create-template="2D empty project"
+layaair create MyGame -t "2D empty project"
 ```
 
-Common options:
+Options:
 
-| Option | Description |
-| --- | --- |
-| `--create-name` | Project name. Required when creating a project. |
-| `--create-path` | Target project directory. |
-| `--create-subdir` | Create a named subdirectory under the target directory. Defaults to `false`. |
-| `--create-template` | Template display name from `--list-templates`. |
-| `--list-templates` | Print available templates. |
+| Option | Short | Description |
+| --- | --- | --- |
+| `--create-name=<name>` | `-n` | Project name. Also the `.laya` filename. |
+| `--create-path=<path>` | `-p` | Parent directory. Default: current directory. |
+| `--create-subdir` | `-s` | Create at `<path>/<name>/`. Default: off. |
+| `--create-template=<name>` | `-t` | Template display name. Default: `"3D empty project"`. |
+| `--list-templates` | `-l` | List available templates and exit. |
 
 ### Build a Project
 
 List build platforms supported by a project:
 
 ```bash
-layaair build --project=. --list-platforms
+layaair build --list-platforms
 ```
 
-Build a project:
+Build a project (platform as positional argument):
 
 ```bash
-layaair build --project=. --build-platform=web
+layaair build web
 ```
 
-Common options:
+Build with a specific project directory and output path:
 
-| Option | Description |
-| --- | --- |
-| `--project` | Project directory. |
-| `--build-platform` | Target build platform. Required for builds. |
-| `--build-out` | Build output directory. |
-| `--build-recompile` | Recompile before building. |
-| `--list-platforms` | Print build platforms supported by the current project. |
+```bash
+layaair build web -p /tmp/demo -o /tmp/out
+```
+
+Options:
+
+| Option | Short | Description |
+| --- | --- | --- |
+| `--build-platform=<p>` | `-t` | Target platform name. |
+| `--project=<path>` | `-p` | Project root. Default: current directory. |
+| `--build-out=<path>` | `-o` | Output directory. Omit to use project build config. |
+| `--build-recompile` | `-r` | Skip asset export and rebuild scripts only. |
+| `--list-platforms` | `-l` | List available build platforms and exit. |
 
 ### Validate Resource Files
 
+Validate files using positional arguments or `--validate-files`:
+
 ```bash
-layaair validate --validate-files=main.ls,ui.lh
+layaair validate assets/main.lh assets/player.lprefab
 ```
 
-`--validate-files` accepts a comma-separated list of resource file paths.
+Options:
+
+| Option | Short | Description |
+| --- | --- | --- |
+| `--validate-files=<f1,f2>` | `-f` | Comma-separated list of files. |
+| `--project=<path>` | `-p` | Project root. Default: current directory. |
 
 ### Preview a Project
 
-Running `layaair` without a subcommand starts the built-in preview server:
+The `run` subcommand (or the bare `layaair` entry) starts the built-in preview server:
 
 ```bash
-layaair --project=.
+layaair run -p .
+# equivalent shorthand:
+layaair -p .
 ```
 
 The server reads the project's editor settings and prints the preview URL after startup.
@@ -208,10 +221,20 @@ export class BuildTools {
 Run it from the command line:
 
 ```bash
-layaair --project=. --script=BuildTools.exportData --script-args="./dist/data.json"
+layaair run -p . --script=BuildTools.exportData --script-args="./dist/data.json"
 ```
 
 `--script-args` is parsed as a quote-aware argument string and passed to the target method as positional arguments.
+
+## Global Options
+
+These options apply to all commands:
+
+| Option | Short | Description |
+| --- | --- | --- |
+| `--help` | `-h` | Show help. Use after a command for scoped help (`layaair build -h`). |
+| `--debug` | `-d` | Enable debug logging. |
+| `--enable-all-panels` | | Load all editor and extension panels in CLI mode. |
 
 ## Command Reference
 
@@ -221,12 +244,12 @@ layaair --project=. --script=BuildTools.exportData --script-args="./dist/data.js
 | `layaair uninstall <version>` | Uninstall a specified CLI runtime. |
 | `layaair list` | List installed CLI runtimes. |
 | `layaair --version` | Print the active CLI runtime version. |
-| `layaair create ...` | Create a LayaAir project. |
-| `layaair build ...` | Build a LayaAir project. |
-| `layaair validate ...` | Validate resource files. |
-| `layaair --project=<path>` | Start the built-in project preview server. |
-| `layaair --project=<path> --script=Class.method` | Run a registered script method. |
-| `layaair help` | Show the full CLI help for the installed version. |
+| `layaair create [name]` | Create a LayaAir project. |
+| `layaair build [platform]` | Build a LayaAir project. |
+| `layaair validate [files...]` | Validate resource files. |
+| `layaair run [-p <path>]` | Start the built-in project preview server. |
+| `layaair run -p <path> --script=Class.method` | Run a registered script method. |
+| `layaair help [command]` | Show help, optionally scoped to a command. |
 
 ## Troubleshooting
 

@@ -74,17 +74,17 @@ layaair install
 # 查看当前激活的运行时版本
 layaair --version
 
-# 使用默认模板创建项目
-layaair create --create-name=MyGame
+# 创建项目（项目名作为位置参数）
+layaair create MyGame
 
 # 启动当前项目的内置预览服务器
-layaair --project=.
+layaair run -p .
 
 # 列出当前项目支持的构建平台
-layaair build --project=. --list-platforms
+layaair build --list-platforms -p .
 
 # 构建 Web 平台
-layaair build --project=. --build-platform=web
+layaair build web -p .
 ```
 
 ## 版本管理
@@ -109,10 +109,10 @@ layaair --version            # 输出当前激活版本
 也可以为单次命令显式指定版本：
 
 ```bash
-layaair --version=3.4.0 build --project=. --build-platform=web
+layaair --version=3.4.0 build web -p .
 ```
 
-当命令包含 `--project` 时，`layaair` 会尝试读取项目目录下的 `.laya` 文件，并根据其中的 `version` 字段匹配本机已安装的 CLI 运行时。如果没有找到匹配版本，会回退到最新已安装版本并输出警告。
+当命令包含 `--project` / `-p` 时，`layaair` 会尝试读取项目目录下的 `.laya` 文件，并根据其中的 `version` 字段匹配本机已安装的 CLI 运行时。如果没有找到匹配版本，会回退到最新已安装版本并输出警告。
 
 ## 命令用法
 
@@ -124,68 +124,81 @@ layaair --version=3.4.0 build --project=. --build-platform=web
 layaair create --list-templates
 ```
 
-使用默认模板创建项目：
+创建项目（项目名作为位置参数）：
 
 ```bash
-layaair create --create-name=MyGame
+layaair create MyGame
 ```
 
 使用指定模板创建项目：
 
 ```bash
-layaair create \
-  --create-name=MyGame \
-  --create-template="2D empty project"
+layaair create MyGame -t "2D empty project"
 ```
 
 常用参数：
 
-| 参数 | 说明 |
-| --- | --- |
-| `--create-name` | 项目名称。创建项目时必填。 |
-| `--create-path` | 项目目标目录。 |
-| `--create-subdir` | 是否在目标目录下创建同名子目录，默认 `false`。 |
-| `--create-template` | 模板显示名称，取值来自 `--list-templates`。 |
-| `--list-templates` | 输出可用模板列表。 |
+| 参数 | 短参数 | 说明 |
+| --- | --- | --- |
+| `--create-name=<name>` | `-n` | 项目名称，同时作为 `.laya` 文件名。 |
+| `--create-path=<path>` | `-p` | 父目录，默认为当前目录。 |
+| `--create-subdir` | `-s` | 在 `<path>/<name>/` 下创建项目，默认关闭。 |
+| `--create-template=<name>` | `-t` | 模板显示名称，默认 `"3D empty project"`。 |
+| `--list-templates` | `-l` | 输出可用模板列表后退出。 |
 
 ### 构建项目
 
 查看项目支持的构建平台：
 
 ```bash
-layaair build --project=. --list-platforms
+layaair build --list-platforms
 ```
 
-执行构建：
+构建项目（平台名作为位置参数）：
 
 ```bash
-layaair build --project=. --build-platform=web
+layaair build web
+```
+
+指定项目目录和输出目录：
+
+```bash
+layaair build web -p /tmp/demo -o /tmp/out
 ```
 
 常用参数：
 
-| 参数 | 说明 |
-| --- | --- |
-| `--project` | 项目目录。 |
-| `--build-platform` | 构建目标平台。执行构建时必填。 |
-| `--build-out` | 构建输出目录。 |
-| `--build-recompile` | 构建前重新编译。 |
-| `--list-platforms` | 输出当前项目支持的构建平台。 |
+| 参数 | 短参数 | 说明 |
+| --- | --- | --- |
+| `--build-platform=<p>` | `-t` | 构建目标平台名称。 |
+| `--project=<path>` | `-p` | 项目根目录，默认为当前目录。 |
+| `--build-out=<path>` | `-o` | 构建输出目录，省略则使用项目构建配置。 |
+| `--build-recompile` | `-r` | 跳过资源导出，仅重新编译脚本。 |
+| `--list-platforms` | `-l` | 输出可用构建平台列表后退出。 |
 
 ### 校验资源文件
 
+使用位置参数或 `--validate-files` 传入文件路径：
+
 ```bash
-layaair validate --validate-files=main.ls,ui.lh
+layaair validate assets/main.lh assets/player.lprefab
 ```
 
-`--validate-files` 接收逗号分隔的资源文件路径列表。
+常用参数：
+
+| 参数 | 短参数 | 说明 |
+| --- | --- | --- |
+| `--validate-files=<f1,f2>` | `-f` | 逗号分隔的资源文件路径列表。 |
+| `--project=<path>` | `-p` | 项目根目录，默认为当前目录。 |
 
 ### 预览项目
 
-不带子命令运行 `layaair` 会启动内置预览服务器：
+使用 `run` 子命令（或裸 `layaair` 入口）启动内置预览服务器：
 
 ```bash
-layaair --project=.
+layaair run -p .
+# 等效简写：
+layaair -p .
 ```
 
 服务器会读取项目的编辑器设置，并在启动后输出可访问的预览地址。
@@ -208,10 +221,20 @@ export class BuildTools {
 命令行调用：
 
 ```bash
-layaair --project=. --script=BuildTools.exportData --script-args="./dist/data.json"
+layaair run -p . --script=BuildTools.exportData --script-args="./dist/data.json"
 ```
 
 `--script-args` 会按支持引号的参数字符串解析，并作为位置参数传入目标方法。
+
+## 全局选项
+
+以下选项适用于所有命令：
+
+| 选项 | 短参数 | 说明 |
+| --- | --- | --- |
+| `--help` | `-h` | 显示帮助。在命令后使用可查看该命令的专项帮助（如 `layaair build -h`）。 |
+| `--debug` | `-d` | 启用调试日志。 |
+| `--enable-all-panels` | | 在 CLI 模式下加载所有编辑器和扩展面板。 |
 
 ## 命令速查
 
@@ -221,12 +244,12 @@ layaair --project=. --script=BuildTools.exportData --script-args="./dist/data.js
 | `layaair uninstall <version>` | 卸载指定 CLI 运行时。 |
 | `layaair list` | 查看已安装 CLI 运行时。 |
 | `layaair --version` | 输出当前激活的 CLI 运行时版本。 |
-| `layaair create ...` | 创建 LayaAir 项目。 |
-| `layaair build ...` | 构建 LayaAir 项目。 |
-| `layaair validate ...` | 校验资源文件。 |
-| `layaair --project=<path>` | 启动项目内置预览服务器。 |
-| `layaair --project=<path> --script=Class.method` | 执行已注册脚本方法。 |
-| `layaair help` | 查看当前已安装版本的完整 CLI 帮助。 |
+| `layaair create [name]` | 创建 LayaAir 项目。 |
+| `layaair build [platform]` | 构建 LayaAir 项目。 |
+| `layaair validate [files...]` | 校验资源文件。 |
+| `layaair run [-p <path>]` | 启动项目内置预览服务器。 |
+| `layaair run -p <path> --script=Class.method` | 执行已注册脚本方法。 |
+| `layaair help [command]` | 查看帮助，可指定命令获取专项帮助。 |
 
 ## 常见问题
 
