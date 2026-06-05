@@ -224,10 +224,20 @@ export class BuildTools {
 layaair run -p . --script=BuildTools.exportData --script-args="./dist/data.json"
 ```
 
-使用 `--script-file` 可以在本次运行中额外编译一个 TypeScript 文件，不会将其导入资源数据库：
+使用 `--script-file` 可以在本次 CLI 运行中额外编译一个 TypeScript 文件，可与 `--script` 一起使用，也可以单独使用，不会将其导入资源数据库：
 
 ```bash
+# 编译文件并调用其中的方法
 layaair run -p . --script=AX.test --script-file=/tmp/a.ts
+
+# 只编译文件，不调用任何方法
+layaair run -p . --script-file=/tmp/a.ts
+```
+
+使用 `--disable-plugins` 可跳过用户插件和包插件的加载：
+
+```bash
+layaair run -p . --disable-plugins
 ```
 
 `--script-args` 会按支持引号的参数字符串解析，并作为位置参数传入目标方法。
@@ -237,8 +247,9 @@ layaair run -p . --script=AX.test --script-file=/tmp/a.ts
 | 参数 | 说明 |
 | --- | --- |
 | `--script=<Class.method>` | 要调用的静态方法。 |
-| `--script-file=<file.ts>` | 仅供本次 `--script` 使用的额外 TypeScript 文件，不会导入资源数据库。 |
+| `--script-file=<file.ts>` | 本次 CLI 运行中额外编译的 TypeScript 文件，可与 `--script` 一起使用或单独使用。 |
 | `--script-args="..."` | 传给 `--script` 的位置参数，支持引号语法。 |
+| `--disable-plugins` | 跳过用户插件和包插件的加载。 |
 
 ## 全局选项
 

@@ -224,10 +224,20 @@ Run it from the command line:
 layaair run -p . --script=BuildTools.exportData --script-args="./dist/data.json"
 ```
 
-Use `--script-file` to compile an extra TypeScript file for the run without adding it to the asset database:
+Use `--script-file` to compile an extra TypeScript file for this CLI run only. It can be used with or without `--script` and is not imported into the asset database:
 
 ```bash
+# compile a file and run a method in it
 layaair run -p . --script=AX.test --script-file=/tmp/a.ts
+
+# compile a file without calling any method
+layaair run -p . --script-file=/tmp/a.ts
+```
+
+Use `--disable-plugins` to skip loading user and package plugins:
+
+```bash
+layaair run -p . --disable-plugins
 ```
 
 `--script-args` is parsed as a quote-aware argument string and passed to the target method as positional arguments.
@@ -237,8 +247,9 @@ Options:
 | Option | Description |
 | --- | --- |
 | `--script=<Class.method>` | Static method to run. |
-| `--script-file=<file.ts>` | Extra TypeScript file to compile for `--script` only. Not imported into the asset database. |
+| `--script-file=<file.ts>` | Extra TypeScript file to compile for this CLI run. Can be used with or without `--script`. |
 | `--script-args="..."` | Quote-aware positional arguments for `--script`. |
+| `--disable-plugins` | Skip loading user and package plugins. |
 
 ## Global Options
 
